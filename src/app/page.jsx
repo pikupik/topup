@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { ShoppingCart, User, Mail, Smartphone } from "lucide-react";
+import axios from "axios";
 
 const dummyTopupOptions = [
   { id: 1, diamonds: 60, price: 15000, bonus: false },
@@ -15,10 +16,26 @@ const dummyTopupOptions = [
 
 export default function MobileLegendsTopUp() {
   const [selectedOption, setSelectedOption] = useState(null);
+  const [products, setProducts] = useState([]);
   const [formData, setFormData] = useState({
     playerId: "",
     contact: "",
   });
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/api/products/get"
+        );
+        setProducts(response.data); // Assuming the API returns an array of products
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const handleOptionSelect = (option) => {
     setSelectedOption(option);
@@ -76,14 +93,14 @@ export default function MobileLegendsTopUp() {
       <div className="flex-grow p-4 space-y-4">
         {/* Diamond Options */}
         <div className="grid grid-cols-2 gap-3">
-          {dummyTopupOptions.map((option) => (
+          {products.map((product) => (
             <div
-              key={option.id}
-              onClick={() => handleOptionSelect(option)}
+              key={product.id}
+              onClick={() => handleOptionSelect(product)}
               className={`bg-gray-800 rounded-lg p-3 shadow-md cursor-pointer 
                 transition-all duration-200 ease-in-out
                 ${
-                  selectedOption?.id === option.id
+                  selectedOption?.id === product.id
                     ? "ring-2 ring-blue-600 scale-105"
                     : "hover:bg-gray-700"
                 }
@@ -92,17 +109,12 @@ export default function MobileLegendsTopUp() {
               <div className="flex justify-between items-center">
                 <div>
                   <p className="font-bold text-blue-400">
-                    {option.diamonds} Diamonds
+                    {product.amount} Diamonds
                   </p>
                   <p className="text-gray-300 text-sm">
-                    Rp {option.price.toLocaleString()}
+                    Rp {product.price.toLocaleString()}
                   </p>
                 </div>
-                {option.bonus && (
-                  <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full absolute top-2 right-2">
-                    Bonus
-                  </span>
-                )}
               </div>
             </div>
           ))}
