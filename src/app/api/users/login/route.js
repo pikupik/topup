@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req) {
@@ -35,8 +36,13 @@ export async function POST(req) {
       return NextResponse.json({ error: "Invalid password" }, { status: 401 });
     }
 
+    //buat token jwt dari id user
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
     //logika jika password benar maka return user dengan status 200
-    return NextResponse.json(user);
+    return NextResponse.json({ user, token }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json(

@@ -23,7 +23,8 @@ model User {
 
 model Products {
   id Int @id @default(autoincrement())
-  name String
-  price Int
-  description String @db.Text
+  name String //ini buat nama nya contoh nama produknya mobilelegends
+  type String // ini buat type nya contoh mobilelegends = diamond pubg = UC
+  amount Int //jumlah dari type nya contoh kalo diamond jumlahnya 335 dm berapa price gitu
+  price Int // ini harga nya contoh kalo diamond 335 dm berapa price gitu
 }
