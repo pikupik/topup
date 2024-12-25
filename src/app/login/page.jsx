@@ -1,17 +1,38 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { User, Lock, Mail, Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e) => {
+  const router = useRouter();
+
+  const handleSubmit = async (e) => {
+    setIsLoading(true);
     e.preventDefault();
-    // Add login logic here
-    console.log("Login attempt:", { email, password });
+    try {
+      const response = await axios.post("/api/users/login", {
+        email,
+        password,
+      });
+
+      if (response.data.token) {
+        sessionStorage.setItem("token", response.data.token);
+        router.push("/admin");
+      } else {
+        throw new Error("Token tidak ditemukan pada response");
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -87,8 +108,9 @@ export default function LoginPage() {
                 hover:bg-blue-700 transition duration-300 
                 transform hover:scale-105 active:scale-95
                 flex items-center justify-center space-x-2"
+              disabled={isLoading}
             >
-              <span>Sign In</span>
+              {isLoading ? "Sedang Masuk..." : "Masuk"}
             </button>
           </form>
         </div>

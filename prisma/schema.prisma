@@ -27,4 +27,5 @@ model Products {
   type String // ini buat type nya contoh mobilelegends = diamond pubg = UC
   amount Int //jumlah dari type nya contoh kalo diamond jumlahnya 335 dm berapa price gitu
   price Int // ini harga nya contoh kalo diamond 335 dm berapa price gitu
+  soldAmount Int @default(0) // ini status paket diamond yang terjual
 }

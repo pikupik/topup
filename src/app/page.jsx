@@ -2,21 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { ShoppingCart, User, Mail, Smartphone } from "lucide-react";
+import { ShoppingCart, User, Mail } from "lucide-react";
 import axios from "axios";
-
-const dummyTopupOptions = [
-  { id: 1, diamonds: 60, price: 15000, bonus: false },
-  { id: 2, diamonds: 140, price: 30000, bonus: false },
-  { id: 3, diamonds: 330, price: 70000, bonus: true },
-  { id: 4, diamonds: 670, price: 140000, bonus: true },
-  { id: 5, diamonds: 1260, price: 250000, bonus: true },
-  { id: 6, diamonds: 2730, price: 540000, bonus: true },
-];
 
 export default function MobileLegendsTopUp() {
   const [selectedOption, setSelectedOption] = useState(null);
   const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     playerId: "",
     contact: "",
@@ -24,13 +16,16 @@ export default function MobileLegendsTopUp() {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setIsLoading(true);
       try {
         const response = await axios.get(
           "http://localhost:3000/api/products/get"
         );
-        setProducts(response.data); // Assuming the API returns an array of products
+        setProducts(response.data);
       } catch (error) {
         console.error("Error fetching products:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -52,15 +47,25 @@ export default function MobileLegendsTopUp() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (selectedOption && formData.playerId && formData.contact) {
-      alert(
-        `Top-up ${selectedOption.diamonds} diamonds to ${formData.playerId}`
-      );
+      alert(`Top-up ${selectedOption.amount} diamonds to ${formData.playerId}`);
     }
   };
 
   const isFormValid = () => {
     return selectedOption && formData.playerId && formData.contact;
   };
+
+  // Skeleton loader for products
+  const ProductSkeleton = () => (
+    <div className="bg-gray-800 rounded-lg p-3 shadow-md animate-pulse">
+      <div className="flex justify-between items-center">
+        <div className="w-full">
+          <div className="h-5 bg-gray-700 rounded w-24 mb-2"></div>
+          <div className="h-4 bg-gray-700 rounded w-32"></div>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex flex-col">
@@ -80,44 +85,53 @@ export default function MobileLegendsTopUp() {
 
       {/* Mobile Legends Banner */}
       <div className="bg-gray-800 p-4 flex items-center justify-center">
-        <Image
-          src="/ml.jpeg"
-          alt="Mobile Legends"
-          width={1000}
-          height={100}
-          className="mb-4 rounded-lg shadow-lg"
-        />
+        <div className="relative w-full h-60 lg:h-96 bg-gray-800">
+          {isLoading ? (
+            <div className="w-full h-full bg-gray-700 animate-pulse"></div>
+          ) : (
+            <Image
+              src="/btrx.jpeg"
+              alt="Mobile Legends"
+              fill
+              className="object-cover items-center"
+            />
+          )}
+        </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-grow p-4 space-y-4">
-        {/* Diamond Options */}
+        {/* Loading State or Diamond Options */}
         <div className="grid grid-cols-2 gap-3">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              onClick={() => handleOptionSelect(product)}
-              className={`bg-gray-800 rounded-lg p-3 shadow-md cursor-pointer 
-                transition-all duration-200 ease-in-out
-                ${
-                  selectedOption?.id === product.id
-                    ? "ring-2 ring-blue-600 scale-105"
-                    : "hover:bg-gray-700"
-                }
-                relative`}
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-bold text-blue-400">
-                    {product.amount} Diamonds
-                  </p>
-                  <p className="text-gray-300 text-sm">
-                    Rp {product.price.toLocaleString()}
-                  </p>
+          {isLoading
+            ? // Show 6 skeleton loaders while loading
+              [...Array(6)].map((_, index) => <ProductSkeleton key={index} />)
+            : // Show actual products when loaded
+              products.map((product) => (
+                <div
+                  key={product.id}
+                  onClick={() => handleOptionSelect(product)}
+                  className={`bg-gray-800 rounded-lg p-3 shadow-md cursor-pointer 
+                  transition-all duration-200 ease-in-out
+                  ${
+                    selectedOption?.id === product.id
+                      ? "ring-2 ring-blue-600 scale-105"
+                      : "hover:bg-gray-700"
+                  }
+                  relative`}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-blue-400">
+                        {product.amount} Diamonds
+                      </p>
+                      <p className="text-gray-300 text-sm">
+                        Rp {product.price.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              ))}
         </div>
 
         {/* Combined Input Section */}
@@ -164,14 +178,14 @@ export default function MobileLegendsTopUp() {
       <div className="p-4 bg-gray-800 shadow-md">
         <button
           onClick={handleSubmit}
-          disabled={!isFormValid()}
+          disabled={!isFormValid() || isLoading}
           className="w-full bg-blue-600 text-white p-3 rounded-lg 
             flex items-center justify-center
             hover:bg-blue-700 transition-colors duration-200
             disabled:bg-gray-600 disabled:cursor-not-allowed"
         >
           <ShoppingCart className="mr-2" />
-          Lanjutkan Pembayaran
+          {isLoading ? "Loading..." : "Lanjutkan Pembayaran"}
         </button>
       </div>
     </div>
